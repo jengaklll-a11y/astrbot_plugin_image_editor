@@ -8,8 +8,8 @@
     "model": {
         "description": "【通用】默认模型名称",
         "type": "string",
-        "hint": "图生图和文生图功能均使用此模型。默认为 gemini-2.5-flash-image",
-        "default": "gemini-2.5-flash-image"
+        "hint": "图生图和文生图功能均使用此模型。默认为 doubao-seedream-4-0-250828",
+        "default": "doubao-seedream-4-0-250828"
     },
     "api_keys": {
         "description": "API 密钥列表",
@@ -159,4 +159,5 @@
         ]
     }
 }
+
 
