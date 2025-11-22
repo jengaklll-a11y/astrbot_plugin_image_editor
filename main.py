@@ -21,11 +21,11 @@ from astrbot.core.platform.astr_message_event import AstrMessageEvent
 
 
 @register(
-    "astrbot_plugin_jimeng",
+    "astrbot_plugin_image_editor",
     "jengaklll-a11y",
     "通过第三方api进行图片编辑",
     "1.0.0", 
-    "https://github.com/jengaklll-a11y/astrbot_plugin_jimeng",
+    "https://github.com/jengaklll-a11y/astrbot_plugin_image_editor",
 )
 class FigurineProPlugin(Star):
     class ImageWorkflow:
@@ -712,4 +712,5 @@ class FigurineProPlugin(Star):
     async def terminate(self):
         if self.iwf: await self.iwf.terminate()
         logger.info("[FigurinePro] 插件已终止")
+
 
