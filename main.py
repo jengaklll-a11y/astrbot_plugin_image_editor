@@ -360,7 +360,7 @@ class FigurineProPlugin(Star):
             yield event.plain_result(f"❌ 修改失败 ({elapsed:.2f}s)")
         event.stop_event()
 
-    @filter.command("lm添加", aliases={"lma"}, prefix_optional=True)
+    @filter.command("jm添加", aliases={"lma"}, prefix_optional=True)
     async def add_lm_prompt(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         raw = event.message_str.strip()
@@ -554,7 +554,7 @@ class FigurineProPlugin(Star):
         await self._save_user_counts()
         yield event.plain_result(f"✅ 已为用户 {target_qq} 减少 {count} 次，TA当前剩余 {current_count - count} 次。")
 
-    @filter.command("jn增加群组次数", prefix_optional=True)
+    @filter.command("jm增加群组次数", prefix_optional=True)
     async def on_add_group_counts(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         match = re.search(r"(\d+)\s+(\d+)", event.message_str.strip())
@@ -712,6 +712,7 @@ class FigurineProPlugin(Star):
     async def terminate(self):
         if self.iwf: await self.iwf.terminate()
         logger.info("[FigurinePro] 插件已终止")
+
 
 
 
