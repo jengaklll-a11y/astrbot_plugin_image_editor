@@ -24,7 +24,7 @@ from astrbot.core.platform.astr_message_event import AstrMessageEvent
     "astrbot_plugin_image_editor",
     "jengaklll-a11y",
     "通过第三方api进行图片编辑",
-    "1.0.0", 
+    "1.1.0", 
     "https://github.com/jengaklll-a11y/astrbot_plugin_image_editor",
 )
 class FigurineProPlugin(Star):
@@ -365,7 +365,7 @@ class FigurineProPlugin(Star):
         if not self.is_global_admin(event): return
         raw = event.message_str.strip()
         if ":" not in raw:
-            yield event.plain_result('格式错误, 正确示例:\n#jm添加 姿势表:为这幅图创建一个姿势表, 摆出各种姿势')
+            yield event.plain_result('格式错误, 正确示例:\n/jm添加 姿势表:为这幅图创建一个姿势表, 摆出各种姿势')
             return
 
         key, new_value = map(str.strip, raw.split(":", 1))
@@ -382,7 +382,7 @@ class FigurineProPlugin(Star):
         await self._load_prompt_map()
         yield event.plain_result(f"已保存LM生图提示语:\n{key}:{new_value}")
 
-    @filter.command("jm帮助", aliases={"jmh", "手办化帮助"}, prefix_optional=True)
+    @filter.command("jm帮助", aliases={"jmh", "jm列表"}, prefix_optional=True)
     async def on_prompt_help(self, event: AstrMessageEvent):
         # 提取命令后的关键词
         text = event.message_str.strip()
@@ -482,7 +482,7 @@ class FigurineProPlugin(Star):
         except Exception as e:
             logger.error(f"保存用户签到文件时发生错误: {e}", exc_info=True)
 
-    @filter.command("手办化签到", prefix_optional=True)
+    @filter.command("jm签到", prefix_optional=True)
     async def on_checkin(self, event: AstrMessageEvent):
         if not self.conf.get("enable_checkin", False):
             yield event.plain_result("📅 本机器人未开启签到功能。")
@@ -506,7 +506,7 @@ class FigurineProPlugin(Star):
         await self._save_user_checkin_data()
         yield event.plain_result(f"🎉 签到成功！获得 {reward} 次，当前剩余: {new_count} 次。")
 
-    @filter.command("手办化增加用户次数", prefix_optional=True)
+    @filter.command("jm增加用户次数", prefix_optional=True)
     async def on_add_user_counts(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         cmd_text = event.message_str.strip()
@@ -521,14 +521,14 @@ class FigurineProPlugin(Star):
             if match: target_qq, count = match.group(1), int(match.group(2))
         if not target_qq or count <= 0:
             yield event.plain_result(
-                '格式错误:\n#手办化增加用户次数 @用户 <次数>\n或 #手办化增加用户次数 <QQ号> <次数>')
+                '格式错误:\n/jm增加用户次数 @用户 <次数>\n或 /jm增加用户次数 <QQ号> <次数>')
             return
         current_count = self._get_user_count(target_qq)
         self.user_counts[str(target_qq)] = current_count + count
         await self._save_user_counts()
         yield event.plain_result(f"✅ 已为用户 {target_qq} 增加 {count} 次，TA当前剩余 {current_count + count} 次。")
 
-    @filter.command("手办化减少用户次数", prefix_optional=True)
+    @filter.command("jm减少用户次数", prefix_optional=True)
     async def on_reduce_user_counts(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         cmd_text = event.message_str.strip()
@@ -543,7 +543,7 @@ class FigurineProPlugin(Star):
             if match: target_qq, count = match.group(1), int(match.group(2))
         if not target_qq or count <= 0:
             yield event.plain_result(
-            '格式错误:\n#手办化减少用户次数 @用户 <次数>\n或 #手办化减少用户次数 <QQ号> <次数>')
+            '格式错误:\n/jm减少用户次数 @用户 <次数>\n或 /jm减少用户次数 <QQ号> <次数>')
             return
         current_count = self._get_user_count(target_qq)
         if current_count < count:
@@ -554,12 +554,12 @@ class FigurineProPlugin(Star):
         await self._save_user_counts()
         yield event.plain_result(f"✅ 已为用户 {target_qq} 减少 {count} 次，TA当前剩余 {current_count - count} 次。")
 
-    @filter.command("手办化增加群组次数", prefix_optional=True)
+    @filter.command("jn增加群组次数", prefix_optional=True)
     async def on_add_group_counts(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         match = re.search(r"(\d+)\s+(\d+)", event.message_str.strip())
         if not match:
-            yield event.plain_result('格式错误: #手办化增加群组次数 <群号> <次数>')
+            yield event.plain_result('格式错误: #/jm增加群组次数 <群号> <次数>')
             return
         target_group, count = match.group(1), int(match.group(2))
         current_count = self._get_group_count(target_group)
@@ -567,12 +567,12 @@ class FigurineProPlugin(Star):
         await self._save_group_counts()
         yield event.plain_result(f"✅ 已为群组 {target_group} 增加 {count} 次，该群当前剩余 {current_count + count} 次。")
 
-    @filter.command("手办化减少群组次数", prefix_optional=True)
+    @filter.command("jm减少群组次数", prefix_optional=True)
     async def on_reduce_group_counts(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         match = re.search(r"(\d+)\s+(\d+)", event.message_str.strip())
         if not match:
-            yield event.plain_result('格式错误: #手办化减少群组次数 <群号> <次数>')
+            yield event.plain_result('格式错误: /jm减少群组次数 <群号> <次数>')
             return
         target_group, count = match.group(1), int(match.group(2))
         current_count = self._get_group_count(target_group)
@@ -580,7 +580,7 @@ class FigurineProPlugin(Star):
         await self._save_group_counts()
         yield event.plain_result(f"✅ 已为群组 {target_group} 减少 {count} 次，该群当前剩余 {current_count - count} 次。")
 
-    @filter.command("手办化查询次数", prefix_optional=True)
+    @filter.command("jm查询次数", prefix_optional=True)
     async def on_query_counts(self, event: AstrMessageEvent):
         user_id_to_query = event.get_sender_id()
         if self.is_global_admin(event):
@@ -596,7 +596,7 @@ class FigurineProPlugin(Star):
         if group_id := event.get_group_id(): reply_msg += f"\n本群共享剩余次数为: {self._get_group_count(group_id)}"
         yield event.plain_result(reply_msg)
 
-    @filter.command("手办化添加key", prefix_optional=True)
+    @filter.command("jm添加key", prefix_optional=True)
     async def on_add_key(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         new_keys = event.message_str.strip().split()
@@ -607,7 +607,7 @@ class FigurineProPlugin(Star):
         await self.conf.set("api_keys", api_keys)
         yield event.plain_result(f"✅ 操作完成，新增 {len(added_keys)} 个Key，当前共 {len(api_keys)} 个。")
 
-    @filter.command("手办化key列表", prefix_optional=True)
+    @filter.command("jmkey列表", prefix_optional=True)
     async def on_list_keys(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         api_keys = self.conf.get("api_keys", [])
@@ -712,5 +712,6 @@ class FigurineProPlugin(Star):
     async def terminate(self):
         if self.iwf: await self.iwf.terminate()
         logger.info("[FigurinePro] 插件已终止")
+
 
 
