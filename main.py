@@ -21,11 +21,11 @@ from astrbot.core.platform.astr_message_event import AstrMessageEvent
 
 
 @register(
-    "astrbot_plugin_shoubanhua",
+    "astrbot_plugin_jimeng",
     "shskjw",
-    "通过第三方api进行手办化等功能",
-    "1.4.0", 
-    "https://github.com/shkjw/astrbot_plugin_shoubanhua",
+    "通过第三方api进行图片编辑",
+    "1.0.0", 
+    "https://github.com/jengaklll-a11y/astrbot_plugin_jimeng",
 )
 class FigurineProPlugin(Star):
     class ImageWorkflow:
@@ -199,10 +199,10 @@ class FigurineProPlugin(Star):
             has_user_count = not user_limit_on or user_count > 0
             if group_id:
                 if not has_group_count and not has_user_count:
-                    yield event.plain_result("❌ 本群次数与您的个人次数均已用尽。");
+                    yield event.plain_result("❌ 本群次数与您的个人次数均已用尽，请联系管理员获取次数。");
                     return
             elif not has_user_count:
-                yield event.plain_result("❌ 您的使用次数已用完。");
+                yield event.plain_result("❌ 您的使用次数已用完，请联系管理员获取次数。");
                 return
         if not self.iwf or not (img_bytes_list := await self.iwf.get_images(event)):
             if not is_bnn:
@@ -245,14 +245,14 @@ class FigurineProPlugin(Star):
                     f"本群剩余: {self._get_group_count(group_id)}")
             yield event.chain_result([Image.fromBytes(res), Plain(" | ".join(caption_parts))])
         else:
-            yield event.plain_result(f"❌ 生成失败 ({elapsed:.2f}s)\n原因: {res}")
+            yield event.plain_result(f"❌ 生成失败 ({elapsed:.2f}s)")
         event.stop_event()
 
-    @filter.command("文生图", prefix_optional=True)
+    @filter.command("jm生图", prefix_optional=True)
     async def on_text_to_image_request(self, event: AstrMessageEvent):
         prompt = event.message_str.strip()
         if not prompt:
-            yield event.plain_result("请提供文生图的描述。用法: #文生图 <描述>")
+            yield event.plain_result("请提供生图的描述。用法: /jm生图 <描述>")
             return
 
         sender_id = event.get_sender_id()
@@ -274,14 +274,14 @@ class FigurineProPlugin(Star):
             has_user_count = not user_limit_on or user_count > 0
             if group_id:
                 if not has_group_count and not has_user_count:
-                    yield event.plain_result("❌ 本群次数与您的个人次数均已用尽。");
+                    yield event.plain_result("❌ 本群次数与您的个人次数均已用尽，请联系管理员获取次数。");
                     return
             elif not has_user_count:
-                yield event.plain_result("❌ 您的使用次数已用完。");
+                yield event.plain_result("❌ 您的使用次数已用完，请联系管理员获取次数。");
                 return
 
         display_prompt = prompt[:20] + '...' if len(prompt) > 20 else prompt
-        yield event.plain_result(f"🎨 收到文生图请求，正在生成 [{display_prompt}]...")
+        yield event.plain_result(f"🎨 收到生图请求，正在生成 [{display_prompt}]...")
 
         start_time = datetime.now()
         # 调用通用API，但传入空的图片列表
@@ -306,7 +306,58 @@ class FigurineProPlugin(Star):
                     f"本群剩余: {self._get_group_count(group_id)}")
             yield event.chain_result([Image.fromBytes(res), Plain(" | ".join(caption_parts))])
         else:
-            yield event.plain_result(f"❌ 生成失败 ({elapsed:.2f}s)\n原因: {res}")
+            yield event.plain_result(f"❌ 生成失败 ({elapsed:.2f}s)")
+        event.stop_event()
+
+    @filter.command("jm改图", prefix_optional=True)
+    async def cmd_edit(self, event: AstrMessageEvent, *, prompt: str):
+        """jm改图（需携带/引用图片）：/jm改图 <提示词>"""
+        sender_id = event.get_sender_id()
+        group_id = event.get_group_id()
+        is_master = self.is_global_admin(event)
+        if not is_master:
+            if sender_id in self.conf.get("user_blacklist", []): return
+            if group_id and group_id in self.conf.get("group_blacklist", []): return
+            if self.conf.get("user_whitelist", []) and sender_id not in self.conf.get("user_whitelist", []): return
+            if group_id and self.conf.get("group_whitelist", []) and group_id not in self.conf.get("group_whitelist", []): return
+            user_count = self._get_user_count(sender_id)
+            group_count = self._get_group_count(group_id) if group_id else 0
+            user_limit_on = self.conf.get("enable_user_limit", True)
+            group_limit_on = self.conf.get("enable_group_limit", False) and group_id
+            has_group_count = not group_limit_on or group_count > 0
+            has_user_count = not user_limit_on or user_count > 0
+            if group_id:
+                if not has_group_count and not has_user_count:
+                    yield event.plain_result("❌ 本群次数与您的个人次数均已用尽，请联系管理员获取次数。"); return
+            elif not has_user_count:
+                yield event.plain_result("❌ 您的使用次数已用完，请联系管理员获取次数。"); return
+        
+        # 检查是否包含图片
+        if not self.iwf or not (img_bytes_list := await self.iwf.get_images(event)):
+            yield event.plain_result("请先携带或引用一张图片后，再使用：/jm改图 <提示词>"); return
+        
+        yield event.plain_result(f"🎨 正在修改图片...")
+        start_time = datetime.now()
+        res = await self._call_api(img_bytes_list, prompt)
+        elapsed = (datetime.now() - start_time).total_seconds()
+        if isinstance(res, bytes):
+            if not is_master:
+                if self.conf.get("enable_group_limit", False) and group_id and self._get_group_count(group_id) > 0:
+                    await self._decrease_group_count(group_id)
+                elif self.conf.get("enable_user_limit", True) and self._get_user_count(sender_id) > 0:
+                    await self._decrease_user_count(sender_id)
+            caption_parts = [f"✅ 修改成功 ({elapsed:.2f}s)", f"提示词: {prompt[:20]}..." if len(prompt) > 20 else f"提示词: {prompt}"]
+            if is_master:
+                caption_parts.append("剩余次数: ∞")
+            else:
+                if self.conf.get("enable_user_limit", True): caption_parts.append(f"个人剩余: {self._get_user_count(sender_id)}")
+                if self.conf.get("enable_group_limit", False) and group_id: caption_parts.append(f"本群剩余: {self._get_group_count(group_id)}")
+            
+            # 发送图片
+            yield event.chain_result([Image.fromBytes(res), Plain(" | ".join(caption_parts))])
+
+        else:
+            yield event.plain_result(f"❌ 修改失败 ({elapsed:.2f}s)")
         event.stop_event()
 
     @filter.command("lm添加", aliases={"lma"}, prefix_optional=True)
@@ -314,7 +365,7 @@ class FigurineProPlugin(Star):
         if not self.is_global_admin(event): return
         raw = event.message_str.strip()
         if ":" not in raw:
-            yield event.plain_result('格式错误, 正确示例:\n#lm添加 姿势表:为这幅图创建一个姿势表, 摆出各种姿势')
+            yield event.plain_result('格式错误, 正确示例:\n#jm添加 姿势表:为这幅图创建一个姿势表, 摆出各种姿势')
             return
 
         key, new_value = map(str.strip, raw.split(":", 1))
@@ -331,22 +382,23 @@ class FigurineProPlugin(Star):
         await self._load_prompt_map()
         yield event.plain_result(f"已保存LM生图提示语:\n{key}:{new_value}")
 
-    @filter.command("lm帮助", aliases={"lmh", "手办化帮助"}, prefix_optional=True)
+    @filter.command("jm帮助", aliases={"jmh", "手办化帮助"}, prefix_optional=True)
     async def on_prompt_help(self, event: AstrMessageEvent):
-        keyword = event.message_str.strip()
+        # 提取命令后的关键词
+        text = event.message_str.strip()
+        parts = text.split(None, 1)
+        keyword = parts[1].strip() if len(parts) > 1 else ""
         if not keyword:
-            msg = "图生图预设指令: \n"
+            msg = "可用的预设模板: \n"
             msg += "、".join(self.prompt_map.keys())
-            msg += "\n\n纯文本生图指令: \n#文生图 <你的描述>"
-            msg += "\n\n发送图片 + 预设指令 或 @用户 + 预设指令 来进行图生图。"
             yield event.plain_result(msg)
             return
 
         prompt = self.prompt_map.get(keyword)
         if not prompt:
-            yield event.plain_result("未找到此预设指令")
+            yield event.plain_result("未找到此提示词")
             return
-        yield event.plain_result(f"预设 [{keyword}] 的内容:\n{prompt}")
+        yield event.plain_result(f"{keyword}:\n{prompt}")
 
     def is_global_admin(self, event: AstrMessageEvent) -> bool:
         admin_ids = self.context.get_config().get("admins_id", [])
@@ -476,6 +528,32 @@ class FigurineProPlugin(Star):
         await self._save_user_counts()
         yield event.plain_result(f"✅ 已为用户 {target_qq} 增加 {count} 次，TA当前剩余 {current_count + count} 次。")
 
+    @filter.command("手办化减少用户次数", prefix_optional=True)
+    async def on_reduce_user_counts(self, event: AstrMessageEvent):
+        if not self.is_global_admin(event): return
+        cmd_text = event.message_str.strip()
+        at_seg = next((s for s in event.message_obj.message if isinstance(s, At)), None)
+        target_qq, count = None, 0
+        if at_seg:
+            target_qq = str(at_seg.qq)
+            match = re.search(r"(\d+)\s*$", cmd_text)
+            if match: count = int(match.group(1))
+        else:
+            match = re.search(r"(\d+)\s+(\d+)", cmd_text)
+            if match: target_qq, count = match.group(1), int(match.group(2))
+        if not target_qq or count <= 0:
+            yield event.plain_result(
+            '格式错误:\n#手办化减少用户次数 @用户 <次数>\n或 #手办化减少用户次数 <QQ号> <次数>')
+            return
+        current_count = self._get_user_count(target_qq)
+        if current_count < count:
+            yield event.plain_result(
+            f"❌ 操作失败！用户 {target_qq} 当前仅剩余 {current_count} 次，不足减少 {count} 次。")
+            return
+        self.user_counts[str(target_qq)] = current_count - count
+        await self._save_user_counts()
+        yield event.plain_result(f"✅ 已为用户 {target_qq} 减少 {count} 次，TA当前剩余 {current_count - count} 次。")
+
     @filter.command("手办化增加群组次数", prefix_optional=True)
     async def on_add_group_counts(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
@@ -488,6 +566,19 @@ class FigurineProPlugin(Star):
         self.group_counts[str(target_group)] = current_count + count
         await self._save_group_counts()
         yield event.plain_result(f"✅ 已为群组 {target_group} 增加 {count} 次，该群当前剩余 {current_count + count} 次。")
+
+    @filter.command("手办化减少群组次数", prefix_optional=True)
+    async def on_reduce_group_counts(self, event: AstrMessageEvent):
+        if not self.is_global_admin(event): return
+        match = re.search(r"(\d+)\s+(\d+)", event.message_str.strip())
+        if not match:
+            yield event.plain_result('格式错误: #手办化减少群组次数 <群号> <次数>')
+            return
+        target_group, count = match.group(1), int(match.group(2))
+        current_count = self._get_group_count(target_group)
+        self.group_counts[str(target_group)] = current_count - count
+        await self._save_group_counts()
+        yield event.plain_result(f"✅ 已为群组 {target_group} 减少 {count} 次，该群当前剩余 {current_count - count} 次。")
 
     @filter.command("手办化查询次数", prefix_optional=True)
     async def on_query_counts(self, event: AstrMessageEvent):
