@@ -8,13 +8,13 @@
     "model": {
         "description": "【通用】默认模型名称",
         "type": "string",
-        "hint": "图生图和文生图功能均使用此模型。默认为 nano-banana",
-        "default": "nano-banana"
+        "hint": "图生图和文生图功能均使用此模型。默认为 gemini-2.5-flash-image",
+        "default": "gemini-2.5-flash-image"
     },
     "api_keys": {
         "description": "API 密钥列表",
         "type": "list",
-        "hint": "可以填写多个密钥，插件会自动轮换使用。使用 #lm 添加key 命令进行管理。",
+        "hint": "可以填写多个密钥，插件会自动轮换使用。使用 /lm 添加key 命令进行管理。",
         "items": {
             "type": "string",
             "description": "API 密钥"
@@ -24,7 +24,7 @@
     "prefix": {
         "description": "【重要】是否要求指令必须带前缀",
         "type": "bool",
-        "hint": "推荐开启。开启后，指令需要前缀（如 '#'）或 @机器人 才能触发，可避免日常聊天误触。",
+        "hint": "推荐开启。开启后，指令需要前缀（如 '/'）或 @机器人 才能触发，可避免日常聊天误触。",
         "default": true
     },
     "extra_prefix": {
@@ -88,7 +88,7 @@
     "enable_checkin": {
         "description": "【签到系统】是否开启每日签到功能",
         "type": "bool",
-        "hint": "开启后，用户可使用 #lm签到 命令获取个人次数。",
+        "hint": "开启后，用户可使用/lm签到 命令获取个人次数。",
         "default": false
     },
     "checkin_fixed_reward": {
@@ -111,7 +111,7 @@
     },
     "prompt_list": {
         "description": "生图触发词与提示词",
-        "hint": "格式为 触发词:提示词。使用 #lm添加 <触发词>:<提示词> 来动态管理。",
+        "hint": "格式为 触发词:提示词。使用 /lm添加 <触发词>:<提示词> 来动态管理。",
         "type": "list",
         "default": [
             "手办化:Your task is to create a photorealistic, masterpiece-quality image of a 1/7 scale commercialized figurine based on the user's character. The final image must be in a realistic style and environment.\n\n**Crucial Instruction on Face & Likeness:** The figurine's face is the most critical element. It must be a perfect, high-fidelity 3D translation of the character from the source image. The sculpt must be sharp, clean, and intricately detailed, accurately capturing the original artwork's facial structure, eye style, expression, and hair. The final result must be immediately recognizable as the same character, elevated to a premium physical product standard. Do NOT generate a generic or abstract face.\n\n**Scene Composition (Strictly follow these details):**\n1. **Figurine & Base:** Place the figure on a computer desk. It must stand on a simple, circular, transparent acrylic base WITHOUT any text or markings.\n2. **Computer Monitor:** In the background, a computer monitor must display 3D modeling software (like ZBrush or Blender) with the digital sculpt of the very same figurine visible on the screen.\n3. **Artwork Display:** Next to the computer screen, include a transparent acrylic board with a wooden base. This board holds a print of the original 2D artwork that the figurine is based on.\n4. **Environment:** The overall setting is a desk, with elements like a keyboard to enhance realism. The lighting should be natural and well-lit, as if in a room.",
@@ -159,3 +159,4 @@
         ]
     }
 }
+
