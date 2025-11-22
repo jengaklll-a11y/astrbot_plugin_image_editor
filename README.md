@@ -60,4 +60,4 @@
 ---
 
 ## 注
-本插件fork自shskjw的astrbot_plugin_shoubanhua项目，基于维拉大佬写的js改的。
+本插件改自shskjw的astrbot_plugin_shoubanhua项目，基于维拉大佬写的js改的。
