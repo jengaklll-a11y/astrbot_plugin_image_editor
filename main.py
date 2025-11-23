@@ -363,7 +363,7 @@ class FigurineProPlugin(Star):
             yield event.plain_result(f"❌ 修改失败 ({elapsed:.2f}s)")
         event.stop_event()
 
-    @filter.command("lm添加", aliases={"lma"}, prefix_optional=True)
+    @filter.command("jm添加", aliases={"lma"}, prefix_optional=True)
     async def add_lm_prompt(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         raw = event.message_str.strip()
@@ -618,7 +618,7 @@ class FigurineProPlugin(Star):
         key_list_str = "\n".join(f"{i + 1}. {key[:8]}...{key[-4:]}" for i, key in enumerate(api_keys))
         yield event.plain_result(f"🔑 API Key 列表:\n{key_list_str}")
 
-    @filter.command("手办化删除key", prefix_optional=True)
+    @filter.command("jm删除key", prefix_optional=True)
     async def on_delete_key(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         param = event.message_str.strip()
@@ -631,7 +631,7 @@ class FigurineProPlugin(Star):
             await self.conf.set("api_keys", api_keys)
             yield event.plain_result(f"✅ 已删除 Key: {removed_key[:8]}...")
         else:
-            yield event.plain_result("格式错误，请使用 #手办化删除key <序号|all>")
+            yield event.plain_result("格式错误，请使用 /jm删除key <序号|all>")
 
     async def _get_api_key(self) -> str | None:
         keys = self.conf.get("api_keys", [])
@@ -715,6 +715,7 @@ class FigurineProPlugin(Star):
     async def terminate(self):
         if self.iwf: await self.iwf.terminate()
         logger.info("[FigurinePro] 插件已终止")
+
 
 
 
