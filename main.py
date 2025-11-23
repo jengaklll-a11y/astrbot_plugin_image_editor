@@ -179,6 +179,9 @@ class FigurineProPlugin(Star):
             is_bnn = True
             if not user_prompt: return
         elif cmd in self.prompt_map:
+            # 新增判断：如果开关关闭，直接忽略预设指令
+            if not self.conf.get("enable_presets", True):
+                return
             user_prompt = self.prompt_map.get(cmd)
         else:
             return
@@ -360,7 +363,7 @@ class FigurineProPlugin(Star):
             yield event.plain_result(f"❌ 修改失败 ({elapsed:.2f}s)")
         event.stop_event()
 
-    @filter.command("jm添加", aliases={"lma"}, prefix_optional=True)
+    @filter.command("lm添加", aliases={"lma"}, prefix_optional=True)
     async def add_lm_prompt(self, event: AstrMessageEvent):
         if not self.is_global_admin(event): return
         raw = event.message_str.strip()
@@ -712,7 +715,6 @@ class FigurineProPlugin(Star):
     async def terminate(self):
         if self.iwf: await self.iwf.terminate()
         logger.info("[FigurinePro] 插件已终止")
-
 
 
 
