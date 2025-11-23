@@ -109,6 +109,12 @@
         "hint": "当“随机签到奖励”开启时，用户签到可获得的最高次数（最低为1）。",
         "default": 5
     },
+    "enable_presets": {
+        "description": "【开关】是否启用预设指令",
+        "type": "bool",
+        "hint": "开启后，可使用 /手办化、/Q版化 等预设指令。关闭后仅保留 /jm生图 和 /jm改图。",
+        "default": true
+    },
     "prompt_list": {
         "description": "生图触发词与提示词",
         "hint": "格式为 触发词:提示词。使用 /lm添加 <触发词>:<提示词> 来动态管理。",
